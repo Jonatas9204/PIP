@@ -108,7 +108,7 @@ END$$
 
 DELIMITER ;
 			 
-
+-- atualamente trigger em fase de teste.
 
 
 
