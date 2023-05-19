@@ -12,14 +12,25 @@ select * from tb_act_status;
 SELECT VALOR_ATENDIDO, TIPO, tipo_fonte FROM pip.tb_act_execucao;
 
 
-SELECT Q.PROJETO, s.status, q.UNIDADE_COORDENADORA, o.fonte_1, o.caixa_2022, e.valor_atendido  FROM pip.tb_act_orcamentario o
+SELECT Q.PROJETO,
+ s.status,
+ q.UNIDADE_COORDENADORA,
+ o.fonte_1, o.caixa_2022,
+ e.valor_atendido  
+ FROM pip.tb_act_orcamentario o
 join tb_act_qualitativo Q on Q.ID_PROJETO = O.ID_PROJETO2
 left join tb_act_execucao E on e.id_projeto1 = q.id_projeto
 left join tb_act_status S on s.id_projeto = e.id_projeto1;
 
 alter view VW_DESAFIO
 AS
-SELECT Q.PROJETO, s.status, q.UNIDADE_COORDENADORA, o.fonte_1, o.caixa_2022, e.valor_atendido  FROM pip.tb_act_orcamentario o
+SELECT Q.PROJETO,
+ s.status,
+ q.UNIDADE_COORDENADORA,
+ o.fonte_1,
+ o.caixa_2022,
+ e.valor_atendido  
+ FROM pip.tb_act_orcamentario o
 join tb_act_qualitativo Q on Q.ID_PROJETO = O.ID_PROJETO2
 left join tb_act_execucao E on e.id_projeto1 = q.id_projeto
 left join tb_act_status S on s.id_projeto = e.id_projeto1;
@@ -27,8 +38,20 @@ SELECT * FROM VW_DESAFIO;
 
 -- todos os projetos estruturantes que estão em execução
 
-select q.PROJETO, q.UNIDADE_COORDENADORA, q.escopo, q.AREA_ESTRATEGICA, q.PROJETO_ESTRUTURANTE, S.STATUS, o.FONTE_1, o.CAIXA_2022, o.CAIXA_2023, 
-o.CAIXA_2024, o.DEMAIS_FONTES_2022, o.DEMAIS_FONTES_2023, o.DEMAIS_FONTES_2024 from tb_act_qualitativo as q
+select q.PROJETO,
+ q.UNIDADE_COORDENADORA,
+ q.escopo,
+ q.AREA_ESTRATEGICA,
+ q.PROJETO_ESTRUTURANTE,
+ S.STATUS,
+ o.FONTE_1,
+ o.CAIXA_2022,
+ o.CAIXA_2023, 
+ o.CAIXA_2024,
+ o.DEMAIS_FONTES_2022,
+ o.DEMAIS_FONTES_2023,
+ o.DEMAIS_FONTES_2024 
+ from tb_act_qualitativo as q
 join tb_act_orcamentario as o on o.ID_PROJETO2 = q.ID_PROJETO
 JOIN tb_act_status as s on  S.ID_PROJETO = O.ID_PROJETO2
 where q.projeto_estruturante = 'Sim' and s.status = 'Em Execução';
@@ -65,14 +88,21 @@ CALL RelatorioUO(35101);
 -- CRIANDO TRIGGER DE AUDITORIA PARA IDENTIFICAR ALTERAÇÕES NOS VALORES ORÇAMENTÁRIOS PREVIAMENTE 
 -- CADASTRADOS, AFIM DE MAIOR SEGURANÇA E CONSISTÊNCIA DOS DADOS.
 
-
+DROP TABLE IF EXISTS AUDITORIA_PIP;
 CREATE TABLE auditoria_PIP (
-	id int auto_increment primary key,
-	id_projeto2 int not null,
-	projeto varchar(100) not null,
-	FONTE_1 INT,
-	CAIXA_2023 DECIMAL(12,2),
-	DEMAIS_FONTES_2023 decimal(12,2),
+	id_orcamentario INT ,
+  id_projeto2 INT,
+  uo_cod VARCHAR(45),
+  fonte_1 VARCHAR(45),
+  fonte_2 VARCHAR(45),
+  fonte_3 VARCHAR(45),
+  fonte_4 VARCHAR(45),
+  CAIXA_2022 VARCHAR(45),
+  CAIXA_2023 VARCHAR(45),
+  CAIXA_2024 VARCHAR(45),
+  DEMAIS_FONTES_2022 VARCHAR(45),
+  DEMAIS_FONTES_2023 VARCHAR(45),
+  DEMAIS_FONTES_2024 VARCHAR(45),
 	updatedat datetime not null,
 	operation char(3) not null,
 	usuario varchar (20),
@@ -80,35 +110,132 @@ CREATE TABLE auditoria_PIP (
 	);
 
 DELIMITER $$
-
-CREATE TRIGGER auditoria_orcamento AFTER INSERT
-	ON tb_act_orcamentario
-	FOR EACH ROW
-	BEGIN
-		INSERT INTO auditoria_PIP(
-	id,
-	id_projeto2,
-	projeto,
-	FONTE_1,
-	CAIXA_2023,
-	DEMAIS_FONTES_2023,
-	updatedat,
-	usuario,
-	operation
-)
-VALUES (
-	new.id_projeto2,
-	new.FONTE_1,
-	new.CAIXA_2023,
-	new.DEMAIS_FONTES_2023,
-	now(),
-	user(),
-	'INS' );
-END$$ 
-
+CREATE TRIGGER auditoria_orcamento AFTER INSERT 
+ON tb_act_orcamentario
+FOR EACH ROW
+BEGIN
+    INSERT INTO auditoria_PIP (
+        id_orcamentario,
+        id_projeto2,
+        uo_cod,
+        fonte_1,
+        fonte_2,
+        fonte_3,
+        fonte_4,
+        CAIXA_2022,
+        CAIXA_2023,
+        CAIXA_2024,
+        DEMAIS_FONTES_2022,
+        DEMAIS_FONTES_2023,
+        DEMAIS_FONTES_2024,
+        updatedat,
+        usuario,
+        operation
+    )
+    VALUES (
+        NEW.id_orcamentario,
+        NEW.id_projeto2,
+        NEW.uo_cod,
+        NEW.fonte_1,
+        NEW.fonte_2,
+        NEW.fonte_3,
+        NEW.fonte_4,
+        NEW.CAIXA_2022,
+        NEW.CAIXA_2023,
+        NEW.CAIXA_2024,
+        NEW.DEMAIS_FONTES_2022,
+        NEW.DEMAIS_FONTES_2023,
+        NEW.DEMAIS_FONTES_2024,
+        NOW(),
+        USER(),
+        'INS'
+    );
+END$$
 DELIMITER ;
-			 
--- atualamente trigger em fase de teste.
+
+DELIMITER $$
+CREATE TRIGGER auditoria_orcamento2 AFTER DELETE
+ON tb_act_orcamentario
+FOR EACH ROW
+BEGIN
+    INSERT INTO auditoria_PIP (
+        id_orcamentario,
+        id_projeto2,
+        uo_cod,
+        fonte_1,
+        fonte_2,
+        fonte_3,
+        fonte_4,
+        CAIXA_2022,
+        CAIXA_2023,
+        CAIXA_2024,
+        DEMAIS_FONTES_2022,
+        DEMAIS_FONTES_2023,
+        DEMAIS_FONTES_2024,
+        updatedat,
+        usuario,
+        operation
+    )
+    VALUES (
+        OLD.id_orcamentario,
+        OLD.id_projeto2,
+        OLD.uo_cod,
+        OLD.fonte_1,
+        OLD.fonte_2,
+        OLD.fonte_3,
+        OLD.fonte_4,
+        OLD.CAIXA_2022,
+        OLD.CAIXA_2023,
+        OLD.CAIXA_2024,
+        OLD.DEMAIS_FONTES_2022,
+        OLD.DEMAIS_FONTES_2023,
+        OLD.DEMAIS_FONTES_2024,
+        NOW(),
+        USER(),
+        'DEL'
+    );
+END$$
+DELIMITER ;
+
+-- ------------------------------------------------
+ -- TESTANDO AS TRIGGERS DE INSERT INTO E DELETE.
+-- ------------------------------------------------
+
+ INSERT INTO tb_act_orcamentario (
+  id_orcamentario,
+  id_projeto2,
+  uo_cod,
+  fonte_1,
+  fonte_2,
+  fonte_3,
+  fonte_4,
+  CAIXA_2022,
+  CAIXA_2023,
+  CAIXA_2024,
+  DEMAIS_FONTES_2022,
+  DEMAIS_FONTES_2023,
+  DEMAIS_FONTES_2024
+) VALUES (
+  1180,
+  1182,
+  '3555',
+  '0101000999',
+  '0101000999',
+  '0101000999',
+  '0101000999',
+  '1265000.00',
+  '1265000.00',
+  '1265000.00',
+  '1265000.00',
+  '1265000.00',
+  '1265000.00'
+);
+
+  DELETE FROM tb_act_orcamentario WHERE (ID_ORCAMENTARIO = '1180');
+  
+SELECT * FROM auditoria_pip
+
+
 
 
 
