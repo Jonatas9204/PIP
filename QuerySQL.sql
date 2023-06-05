@@ -56,7 +56,64 @@ join tb_act_orcamentario as o on o.ID_PROJETO2 = q.ID_PROJETO
 JOIN tb_act_status as s on  S.ID_PROJETO = O.ID_PROJETO2
 where q.projeto_estruturante = 'Sim' and s.status = 'Em Execução';
 
-SELECT UNIDADE_COORDENADORA, AREA_ESTRATEGICA FROM tb_act_qualitativo;
+
+-- PROJETOS ESTRUTURANTES COM STATUS "PARALISADOS"
+-- Em um esforço para melhores práticas no que se refere a comunicação entre planejamento e orçamento, foi requisitado os projetos que estãos
+-- paralisados afim de realizar entregas que já estão em andamento.
+
+-- CRIANDO UMA PROCEDURE PARA CHAMAR A ATUALIZAÇÃO DESSES DADOS
+
+DELIMITER $$
+
+CREATE PROCEDURE Paralisados()
+BEGIN
+    
+    SELECT q.PROJETO,
+           q.UNIDADE_COORDENADORA,
+           q.escopo,
+           q.AREA_ESTRATEGICA,
+           q.PROJETO_ESTRUTURANTE,
+           s.STATUS,
+           o.FONTE_1,
+           o.CAIXA_2022,
+           o.CAIXA_2023, 
+           o.CAIXA_2024,
+           o.DEMAIS_FONTES_2022,
+           o.DEMAIS_FONTES_2023,
+           o.DEMAIS_FONTES_2024 
+    FROM tb_act_qualitativo AS q
+    JOIN tb_act_orcamentario AS o ON o.ID_PROJETO2 = q.ID_PROJETO
+    JOIN tb_act_status AS s ON s.ID_PROJETO = o.ID_PROJETO2
+    WHERE q.projeto_estruturante = 'Sim' AND s.STATUS = 'paralisado';
+END $$
+
+DELIMITER ;
+CALL Paralisados();
+
+-- CRIANDO VIEW PARA EXPORTAR OS DADOS
+
+CREATE VIEW PARALISADO AS
+SELECT q.PROJETO,
+       q.UNIDADE_COORDENADORA,
+       q.escopo,
+       q.AREA_ESTRATEGICA,
+       q.PROJETO_ESTRUTURANTE,
+       s.STATUS,
+       o.FONTE_1,
+       o.CAIXA_2022,
+       o.CAIXA_2023,
+       o.CAIXA_2024,
+       o.DEMAIS_FONTES_2022,
+       o.DEMAIS_FONTES_2023,
+       o.DEMAIS_FONTES_2024
+FROM tb_act_qualitativo AS q
+JOIN tb_act_orcamentario AS o ON o.ID_PROJETO2 = q.ID_PROJETO
+JOIN tb_act_status AS s ON s.ID_PROJETO = o.ID_PROJETO2
+WHERE q.projeto_estruturante = 'Sim' AND s.STATUS = 'paralisado';
+
+SELECT * FROM PARALISADO;
+
+
 
 -- STORE PROCEDURE CRIADA AFIM DE OTIMIZAR O TEMPO PARA GERAR RELATÓRIOS DE ACOMPANHAMENTOS POR UNIDADE_COORDENADORA
 delimiter $$
@@ -231,9 +288,49 @@ DELIMITER ;
   '1265000.00'
 );
 
-  DELETE FROM tb_act_orcamentario WHERE (ID_ORCAMENTARIO = '1180');
+DELETE FROM tb_act_orcamentario WHERE (ID_ORCAMENTARIO = '1180');
   
-SELECT * FROM auditoria_pip
+SELECT * FROM auditoria_pip;
+
+-- ESSA ETAPA MARCA A ATRIBUIÇÃO DOS PONTOS FOCAIS QUE ESTARÃO ADMINISTRANDO A BASE DE DADOS DOS PROJETOS DE INVESTIMENTOS DO ESTADO(PIP). 
+-- CRIANDO ROLES PARA ATRIBUIR AOS USUÁRIOS.
+
+create role 'app_desenvolvedor', 'app_leitura', 'app_gravacao';
+
+-- ATRIBUINDO PRIVILÉGIOS AS ROLES E AOS USUÁRIOS
+
+GRANT ALL ON PIP.* TO 'app_desenvolvedor';
+GRANT SELECT ON PIP.* TO 'app_leitura'; -- ATRIBUIR PARA O USUARIO GERENTE DE MONITORAMENTO E AVALIAÇÃO  DE POLITICAS PUBLICAS
+GRANT INSERT, UPDATE, DELETE ON PIP.* TO 'app_gravacao'; -- DBA JR
+
+-- CRIANDO USUÁRIOS 
+
+CREATE USER 'ROGERIO'@'localhost' IDENTIFIED BY 'dbajr123';
+CREATE USER 'lUCAS'@'localhost' IDENTIFIED BY 'GMAPP213';
+CREATE USER 'LILIA'@'localhost' IDENTIFIED BY 'read_user2pass';
+CREATE USER 'JonatasDBA'@'%' IDENTIFIED BY 'dev1user';
+
+-- atribuição
+
+GRANT 'app_desenvolvedor' TO 'JonatasDBA'@'%';
+GRANT 'app_leitura' TO 'lUCAS'@'localhost';
+GRANT 'app_leitura' TO 'LILIA'@'localhost';
+GRANT 'app_gravacao' TO 'ROGERIO'@'localhost';
+
+-- Ativando
+
+SET DEFAULT ROLE ALL TO
+  'ROGERIO'@'localhost',
+  'lUCAS'@'localhost',
+  'LILIA'@'localhost',
+  'JonatasDBA'@'%';
+
+
+
+
+
+
+
 
 
 
