@@ -324,6 +324,15 @@ SET DEFAULT ROLE ALL TO
   'lUCAS'@'localhost',
   'LILIA'@'localhost',
   'JonatasDBA'@'%';
+  
+  
+ 
+  
+  
+  
+
+  
+
 
 
 
