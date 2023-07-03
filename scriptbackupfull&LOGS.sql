@@ -75,8 +75,19 @@ for($i=0; $i -lt $oldbackups.count; $i++){
 
    -- Vamos Executar no DOS o backup manual full com arquivo de erros.
    -- VAMOS EXECUTAR no DOS o Backup do LOGs full.
-
+powershell -ExecutionPolicy RemoteSigned C:\MYSQLAPOIO\backupfulldb.ps1
 C:\MYSQLAPOIO\backupfulldb.ps1
 C:\mysqlapoio\backupLOGdb.ps1 
 
 SHOW BINARY LOGS;
+
+---
+-- AUTOMATIZANDO BACKUPS PELO AGENDADOR DE TAREFAS
+---
+SCRIPT PARA AÇÃO NO AGENDADOR DE TAREFAS
+
+powershell -ExecutionPolicy RemoteSigned C:\MYSQLAPOIO\backupfulldb.ps1
+powershell -ExecutionPolicy RemoteSigned C:\MYSQLAPOIO\backupLOGdb.ps1
+
+
+
