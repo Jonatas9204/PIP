@@ -19,3 +19,11 @@ GRANT SELECT, LOCK TABLES ON `pip`.* TO `mypipbackup`@`localhost`;
 
 -- executar arquivo.bat, para realizar o backup
 
+-- Para remover este profiler, rode:
+
+mysql_config_editor remove --login-path=multiuseaccess_mysql_root
+
+-- Comando para verificar se ja existe usuário
+
+mysql_config_editor print --all
+
