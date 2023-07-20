@@ -3,6 +3,7 @@
 -- Checagem Manual da Integridade do Banco de Dados e tabelas --
 -- Prompt de comando, execute como administrador --
 -- Como boa prática rodar comando semanalmente
+
 mysqlcheck pip -u root -p
 
 -- Em casos de erros encontrados, prosseguir com o procedimento abaixo:
