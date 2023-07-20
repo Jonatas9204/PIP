@@ -1,0 +1,6 @@
+pip.auditoria_pip                                  OK
+pip.tb_act_execucao                                OK
+pip.tb_act_orcamentario                            OK
+pip.tb_act_qualitativo                             OK
+pip.tb_act_responsavel                             OK
+pip.tb_act_status                                  OK
